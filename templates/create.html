@@ -1,0 +1,63 @@
+{% extends "base.html" %} {% block title %}Welcome kubb!{% endblock %} {% block
+content %}
+<div class="container mt-5">
+  {% if message %}
+  <div class="alert alert-secondary" role="alert">
+    <p>{{ message }}</p>
+  </div>
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <form
+        action=""
+        method="post"
+        enctype="multipart/form-data"
+        onsubmit="return disableSubmitButton()"
+      >
+        <div class="form-group">
+          <label for="InputIndexName">Index</label>
+          <input
+            type="text"
+            name="indexName"
+            class="form-control"
+            id="InputIndexName"
+            placeholder="Enter your Index"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="InputNamespace">Upload Course</label>
+          <input
+            accept="application/pdf, .pdf"
+            type="file"
+            name="courseFile"
+            class="form-control"
+            id="InputCourseFile"
+            required
+          />
+          <small id="emailHelp" class="form-text text-muted"
+            >Upload Course only in pdf</small
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitButton">
+          Submit
+        </button>
+        <small id="emailHelp" class="form-text text-muted"
+            >It may takes a few minutes to save in database</small
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function disableSubmitButton() {
+    const submitButton = document.getElementById("submitButton");
+    submitButton.disabled = true;
+    submitButton.innerText = "Submitting..."; // Change button text
+    return true; // Allow form submission
+  }
+</script>
+{% endblock %}

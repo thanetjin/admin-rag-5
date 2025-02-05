@@ -1,0 +1,71 @@
+{% extends "base.html" %} {% block title %} Manage Records {% endblock %} {%
+block content %}
+<div class="container mt-5">
+  <!-- Alert for the first index name -->
+  <!-- Button for creating a new record -->
+  <div class="mb-3">
+    <a href="{{ url_for('create_knowledgebase') }}" class="btn btn-primary"
+      >Create New Knowledgebase</a
+    >
+  </div>
+
+  <!-- Records Table -->
+  <div class="row">
+    <div class="col-md-12">
+      <h4>Existing Knowledgebase</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Index Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for index in indexList %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ index.name }}</td>
+
+            <td>
+              <form
+                action=""
+                method="post"
+                style="display: inline"
+                onsubmit="return disableSubmitButton()"
+              >
+                <input
+                  type="hidden"
+                  name="index_name"
+                  value="{{ index.name }}"
+                />
+                <button
+                  type="submit"
+                  class="btn btn-danger btn-sm"
+                  id="submitButton"
+                >
+                  Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="text-center">No records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  function disableSubmitButton() {
+    const submitButton = document.getElementById("submitButton");
+    submitButton.disabled = true;
+    submitButton.innerText = "Deleting..."; // Change button text
+    return true; // Allow form submission
+  }
+</script>
+{% endblock %}
