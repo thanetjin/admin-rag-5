@@ -328,4 +328,4 @@ def dashboard():
             return render_template('dashboard.html',indexList=index_list)
 
 if __name__ == "__main__":
-  app.run(port=5010,debug=True)
+  app.run(debug=True)
