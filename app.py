@@ -23,8 +23,6 @@ import time
 #set app as a Flask instance 
 app = Flask(__name__)
 #encryption relies on secret keys so they could be run
-app.secret_key = "testing"
-
 
 # Apply nest_asyncio to allow nested event loops
 nest_asyncio.apply()
