@@ -5,8 +5,23 @@ block content %}
   <!-- Button for creating a new record -->
   <div class="mb-3">
     <a href="{{ url_for('create_knowledgebase') }}" class="btn btn-primary"
-      >Create New Knowledgebase</a
+      >Add Computer Science Course</a
     >
+  </div>
+  <div class="mb-3">
+    <a href="{{ url_for('create_english') }}" class="btn btn-primary"
+      >Add English Knowledgebase
+    </a>
+  </div>
+  <div class="mb-3">
+    <a href="{{ url_for('create_gen') }}" class="btn btn-primary"
+      >Add Gen-ed Knowledgebase
+    </a>
+  </div>
+  <div class="mb-3">
+    <a href="{{ url_for('create_policy') }}" class="btn btn-primary"
+      >Add Policy
+    </a>
   </div>
 
   <!-- Records Table -->

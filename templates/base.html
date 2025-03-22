@@ -14,7 +14,12 @@
   </head>
   <body>
     <nav class="navbar navbar-light" style="background-color: #e3f2fd">
-      <a class="navbar-brand" href="{{ url_for('dashboard') }}">Teacher AI </a>
+      <a
+        class="navbar-brand {% if 'email' not in session %}disabled{% endif %}"
+        href="{% if 'email' in session %}{{ url_for('dashboard') }}{% else %}#{% endif %}"
+      >
+        KruKeng AI
+      </a>
       <button
         class="navbar-toggler"
         type="button"
@@ -23,6 +28,8 @@
         aria-controls="navbarNavAltMarkup"
         aria-expanded="false"
         aria-label="Toggle navigation"
+        {% if 'email' not in session %}disabled{% endif %}
+
       >
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -31,8 +38,7 @@
           <!-- <a class="nav-item nav-link" href="/"
             >Register <span class="sr-only">(current)</span></a
           > -->
-          <a class="nav-item nav-link" href="/admin-dashboard">Dashboard</a>
-          <a class="nav-item nav-link" href="/">Login</a>
+          <a class="nav-item nav-link" href="/admin-dashboard">Dashboard</a>          
           <a class="nav-item nav-link" href="/logout">Logout</a>
         </div>
       </div>

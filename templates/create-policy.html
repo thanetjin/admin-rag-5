@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Welcome kubb!{% endblock %} {% block
+{% extends "base.html" %} {% block title %}WelcomeTo policy page!{% endblock %} {% block
 content %}
 <div class="container mt-5">
   {% if message %}
@@ -14,29 +14,12 @@ content %}
         method="post"
         enctype="multipart/form-data"
         onsubmit="return disableSubmitButton()"
-      >
-        
-
-        <div class="form-group">
-          <label for="InputNamespace">Upload Course</label>
-          <input
-            accept="application/pdf, .pdf"
-            type="file"
-            name="courseFile"
-            class="form-control"
-            id="InputCourseFile"
-            required
-          />
-          <small id="emailHelp" class="form-text text-muted"
-            >Upload Course only in pdf</small
-          >
-        </div>
-
+      >        
         <button type="submit" class="btn btn-primary" id="submitButton">
-          Submit
+          Refresh
         </button>
         <small id="emailHelp" class="form-text text-muted"
-            >It may takes a few minutes to save in database</small
+            >google sheets here : https://docs.google.com/spreadsheets/d/1_LGcK9OX3ZmIAKLpyfIgwB6sAyAEyUDNYRT6qwvWV0M/edit?gid=0#gid=0</small
       </form>
     </div>
   </div>
