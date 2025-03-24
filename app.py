@@ -185,87 +185,87 @@ def chunkByLlamaEnglish(file_like, fileName):
     text_only = document[0].text_resource.text
     print(text_only)
     
-    # huggingface_ef = HuggingFaceInferenceAPIEmbeddings(
-    #     api_key="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",
-    #     model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    # )
+    huggingface_ef = HuggingFaceInferenceAPIEmbeddings(
+        api_key="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",
+        model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    )
     
-    # pc = Pinecone(api_key=pinecone_api_key)
-    # index_list = pc.list_indexes()
+    pc = Pinecone(api_key=pinecone_api_key)
+    index_list = pc.list_indexes()
     
-    # # Extract the index names from the index_list
-    # index_names = [index_info["name"] for index_info in index_list.get("indexes", [])]
-    # print("Index names are:", index_names)
+    # Extract the index names from the index_list
+    index_names = [index_info["name"] for index_info in index_list.get("indexes", [])]
+    print("Index names are:", index_names)
     
-    # # Always use "comsci" as the index name
-    # index_name_to_use = "comsci"
+    # Always use "comsci" as the index name
+    index_name_to_use = "comsci"
     
-    # # Check if index exists
-    # if index_name_to_use in index_names:
-    #     print(f"Index '{index_name_to_use}' already exists. Skipping creation.")
-    # else:
-    #     print(f"Creating index '{index_name_to_use}'...")
-    #     pc.create_index(
-    #         name=index_name_to_use,
-    #         dimension=384,
-    #         metric="cosine",
-    #         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-    #     )
-    #     # Wait for index to be ready (important!)
+    # Check if index exists
+    if index_name_to_use in index_names:
+        print(f"Index '{index_name_to_use}' already exists. Skipping creation.")
+    else:
+        print(f"Creating index '{index_name_to_use}'...")
+        pc.create_index(
+            name=index_name_to_use,
+            dimension=384,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+        # Wait for index to be ready (important!)
         
-    #     time.sleep(10)  # Add a delay to allow the index to initialize
+        time.sleep(10)  # Add a delay to allow the index to initialize
     
-    # # Always use the "comsci" index
-    # index = pc.Index(index_name_to_use)
+    # Always use the "comsci" index
+    index = pc.Index(index_name_to_use)
     
-    # # First, check for existing documents with metadata "type":"english" and delete them
-    # try:
-    #     results = index.query(
-    #         vector=[0] * 384,  # dummy vector
-    #         filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
-    #         top_k=100,
-    #         include_metadata=True
-    #     )
+    # First, check for existing documents with metadata "type":"english" and delete them
+    try:
+        results = index.query(
+            vector=[0] * 384,  # dummy vector
+            filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
+            top_k=1,
+            include_metadata=True
+        )
         
-    #     # Extract IDs of documents with "type":"english"
-    #     existing_ids = [match['id'] for match in results['matches']]
+        # Extract IDs of documents with "type":"english"
+        existing_ids = [match['id'] for match in results['matches']]
         
-    #     if existing_ids:
-    #         print(f"Found {len(existing_ids)} existing documents with type=english: {existing_ids}")
-    #         # Delete these documents
-    #         index.delete(ids=existing_ids)
-    #         print(f"Deleted {len(existing_ids)} documents with type=english")
-    # except Exception as e:
-    #     print(f"Error when checking/deleting existing documents: {e}")
+        if existing_ids:
+            print(f"Found {len(existing_ids)} existing documents with type=english: {existing_ids}")
+            # Delete these documents
+            index.delete(ids=existing_ids)
+            print(f"Deleted {len(existing_ids)} documents with type=english")
+    except Exception as e:
+        print(f"Error when checking/deleting existing documents: {e}")
     
-    # # Now add the new document
-    # vector_store = PineconeVectorStore(index=index, embedding=huggingface_ef)
+    # Now add the new document
+    vector_store = PineconeVectorStore(index=index, embedding=huggingface_ef)
     
-    # doc = Document(
-    #     page_content=text_only,
-    #     metadata={"type": "english"},
-    # )
+    doc = Document(
+        page_content=text_only,
+        metadata={"type": "english"},
+    )
     
-    # doc_id = "eng1"
-    # vector_store.add_documents([doc], ids=[doc_id])
+    doc_id = "eng1"
+    vector_store.add_documents([doc], ids=[doc_id])
 
-    # print(f"Added document with ID: {doc_id}")        
-    # time.sleep(2)  # Short delay to ensure document is indexed    
-    # try:
-    #     results = index.query(
-    #         vector=[0] * 384,  # dummy vector
-    #         filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
-    #         top_k=100,
-    #         include_metadata=True
-    #     )
+    print(f"Added document with ID: {doc_id}")        
+    time.sleep(2)  # Short delay to ensure document is indexed    
+    try:
+        results = index.query(
+            vector=[0] * 384,  # dummy vector
+            filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
+            top_k=100,
+            include_metadata=True
+        )
         
-    #     # Extract IDs
-    #     ids = [match['id'] for match in results['matches']]
-    #     print("Current ids with type=english:", ids)
-    # except Exception as e:
-    #     print(f"Error querying for documents after addition: {e}")
+        # Extract IDs
+        ids = [match['id'] for match in results['matches']]
+        print("Current ids with type=english:", ids)
+    except Exception as e:
+        print(f"Error querying for documents after addition: {e}")
     
-    # return doc_id
+    return doc_id
 
 @app.route("/register", methods=['post', 'get'])    
 def index():    
