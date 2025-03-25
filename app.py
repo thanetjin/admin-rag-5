@@ -227,7 +227,7 @@ def chunkByLlamaEnglish(file_like, fileName):
             top_k=1,
             include_metadata=True
         )
-        
+        print("result is :",results)
         # Extract IDs of documents with "type":"english"
         existing_ids = [match['id'] for match in results['matches']]
         
