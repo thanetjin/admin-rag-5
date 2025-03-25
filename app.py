@@ -217,6 +217,7 @@ def chunkByLlamaEnglish(file_like, fileName):
     
     # Always use the "comsci" index
     index = pc.Index(index_name_to_use)
+    print("Index name ilove you:", index.describe_index_stats())  # Shows index details
     
     # First, check for existing documents with metadata "type":"english" and delete them
     try:
