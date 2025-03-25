@@ -125,15 +125,16 @@ def chunkByLlama(file_like, fileName):
     
     # Always use the "comsci" index
     index = pc.Index(index_name_to_use)
+    print("Index name ilove you:", index.describe_index_stats())  # Shows index details
     
     # First, check for existing documents with metadata "type":"english" and delete them
     try:
-        results = index.query(
-            vector=[0] * 384,  # dummy vector
+        results = index.query(            
             filter={"type": {"$eq": "course"}},  # Use explicit $eq operator
-            top_k=100,
+            top_k=60,
             include_metadata=True
         )
+        
         
         # Extract IDs of documents with "type":"english"
         existing_ids = [match['id'] for match in results['matches']]
@@ -160,12 +161,12 @@ def chunkByLlama(file_like, fileName):
     print(f"Added document with ID: {doc_id}")        
     time.sleep(2)  # Short delay to ensure document is indexed    
     try:
-        results = index.query(
-            vector=[0] * 384,  # dummy vector
+        results = index.query(            
             filter={"type": {"$eq": "course"}},  # Use explicit $eq operator
             top_k=100,
             include_metadata=True
         )
+        print("result is :",results)
         
         # Extract IDs
         ids = [match['id'] for match in results['matches']]
