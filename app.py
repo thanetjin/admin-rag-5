@@ -400,7 +400,7 @@ def create_gen():
             scopes = [
                 "https://www.googleapis.com/auth/spreadsheets"
             ]            
-            creds = Credentials.from_service_account_info(credentials_json, scopes=scopes)            
+            creds = Credentials.from_service_account_info(credentials, scopes=scopes)            
             
             client = gspread.authorize(creds)
 
