@@ -2,26 +2,28 @@ import os
 import re
 import io
 import nest_asyncio
-
-
-
 from flask import Flask, render_template, request, url_for, redirect, session
 from pymongo import MongoClient
 from llama_parse import LlamaParse
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain.schema import Document
+
+
+
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
 import gspread
-from google.oauth2.service_account import Credentials            
+from google.oauth2.service_account import Credentials
 import bcrypt
 import time
 #set app as a Flask instance 
 app = Flask(__name__)
 #encryption relies on secret keys so they could be run
 app.secret_key = "testing"
+
 # Apply nest_asyncio to allow nested event loops
 nest_asyncio.apply()
+
 
 # connect to LLAMA CLOUD
 os.environ["LLAMA_CLOUD_API_KEY"] = os.environ.get("LLAMA_CLOUD_API_KEY")
@@ -30,13 +32,21 @@ os.environ["PINECONE_API_KEY"] = os.environ.get("PINECONE_API_KEY")
 
 pinecone_api_key = os.environ["PINECONE_API_KEY"]
 huggingface_api_key = os.environ["HUGGINGFACEHUB_API_TOKEN"]
-connection_string = f"""mongodb+srv://admin555:{os.environ.get("MONGODB_PASSWORD")}@rag.8zbcn.mongodb.net/?retryWrites=true&w=majority&appName=RAG"""
-#connect to your Mongo DB database
-client = MongoClient(connection_string)
-db = client.get_database('total_records')
-records = db.register    
 
-def chunkByLlama(file_like):
+
+# #connect to your Mongo DB database
+MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD")
+client = MongoClient(f"mongodb+srv://admin555:{MONGODB_PASSWORD}@rag.8zbcn.mongodb.net/?retryWrites=true&w=majority&appName=RAG")
+db = client.get_database('total_records')
+
+records = db.register    
+#assign URLs to have a particular route 
+
+# Set the upload folder (make sure this folder exists)
+
+
+
+def chunkByLlama(file_like, fileName):
     document = LlamaParse(
         result_type="text"
     ).load_data(file_like, extra_info={"file_name": "file_name"})
@@ -87,7 +97,9 @@ def chunkByLlama(file_like):
     index_list = pc.list_indexes()
     
     # Extract the index names from the index_list
-    index_names = [index_info["name"] for index_info in index_list.get("indexes", [])]    
+    index_names = [index_info["name"] for index_info in index_list.get("indexes", [])]
+    print("Index names are:", index_names)
+    
     # Always use "comsci" as the index name
     index_name_to_use = "comsci"
     
@@ -108,15 +120,16 @@ def chunkByLlama(file_like):
     
     # Always use the "comsci" index
     index = pc.Index(index_name_to_use)
+    print("Index name ilove you:", index.describe_index_stats())  # Shows index details
     
     # First, check for existing documents with metadata "type":"english" and delete them
     try:
-        results = index.query(
-            vector=[0] * 384,  # dummy vector
+        results = index.query(            
             filter={"type": {"$eq": "course"}},  # Use explicit $eq operator
-            top_k=50,
+            top_k=60,
             include_metadata=True
         )
+        
         
         # Extract IDs of documents with "type":"english"
         existing_ids = [match['id'] for match in results['matches']]
@@ -143,29 +156,30 @@ def chunkByLlama(file_like):
     print(f"Added document with ID: {doc_id}")        
     time.sleep(2)  # Short delay to ensure document is indexed    
     try:
-        results = index.query(
-            vector=[0] * 384,  # dummy vector
+        results = index.query(            
             filter={"type": {"$eq": "course"}},  # Use explicit $eq operator
-            top_k=50,
+            top_k=100,
             include_metadata=True
         )
+        print("result is :",results)
         
         # Extract IDs
         ids = [match['id'] for match in results['matches']]
-        print("Current ids :", ids)
+        print("Current ids with type=english:", ids)
     except Exception as e:
         print(f"Error querying for documents after addition: {e}")
     print(f"Successfully saved {len(chunks)} records to Pinecone.")
 
-def chunkByLlamaEnglish(file_like):
+def chunkByLlamaEnglish(file_like, fileName):
     document = LlamaParse(
         result_type="markdown",
         user_prompt="Keep Thai languages",
         system_prompt="Extract the logical flow from this flowchart image and present it in a clear, structured step-by-step format. Ensure that each decision point is distinctly separated and that conditions are clearly linked to their outcomes.",        
-        premium_mode=True
     ).load_data(file_like, extra_info={"file_name": "file_name"})
     
-    text_only = document[0].text_resource.text    
+    text_only = document[0].text_resource.text
+    print(text_only)
+    
     huggingface_ef = HuggingFaceInferenceAPIEmbeddings(
         api_key=huggingface_api_key,
         model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
@@ -191,17 +205,24 @@ def chunkByLlamaEnglish(file_like):
             dimension=384,
             metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        )        
+        )
+        # Wait for index to be ready (important!)
+        
+        time.sleep(10)  # Add a delay to allow the index to initialize
     
     # Always use the "comsci" index
-    index = pc.Index(index_name_to_use)    
+    index = pc.Index(index_name_to_use)
+    print("Index name ilove you:", index.describe_index_stats())  # Shows index details
+    
     # First, check for existing documents with metadata "type":"english" and delete them
     try:
-        results = index.query(            
+        results = index.query(
+            vector=[0] * 384,  # dummy vector
             filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
             top_k=1,
             include_metadata=True
-        )        
+        )
+        print("result is :",results)
         # Extract IDs of documents with "type":"english"
         existing_ids = [match['id'] for match in results['matches']]
         
@@ -227,15 +248,16 @@ def chunkByLlamaEnglish(file_like):
     print(f"Added document with ID: {doc_id}")        
     time.sleep(2)  # Short delay to ensure document is indexed    
     try:
-        results = index.query(            
+        results = index.query(
+            vector=[0] * 384,  # dummy vector
             filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
-            top_k=1,
+            top_k=100,
             include_metadata=True
         )
         
         # Extract IDs
         ids = [match['id'] for match in results['matches']]
-        print("Current ids :", ids)
+        print("Current ids with type=english:", ids)
     except Exception as e:
         print(f"Error querying for documents after addition: {e}")
     
@@ -332,10 +354,17 @@ def create_knowledgebase():
 @app.route('/create-english', methods=["GET", "POST"])
 def create_english():
     if "email" in session:
-        if request.method == "POST":                         
+        if request.method == "POST":        
+            # indexName = request.form.get("indexName")        
             courseFile = request.files.get("courseFile")  
+            
+            # if not indexName or not courseFile:
+            #     message = "Please provide both an index name and a file to upload."
+            #     return render_template("create.html", message=message)
+
             try:
                 file_like = io.BytesIO(courseFile.read())
+                print("file_like",file_like)
 
                 # Use existing event loop safely                
                 chunkByLlamaEnglish(file_like, courseFile.filename)
@@ -354,9 +383,6 @@ def create_english():
 def create_gen():
     if "email" in session:
         if request.method == "POST":                                
-            scopes = [
-                "https://www.googleapis.com/auth/spreadsheets"
-            ]
             credentials_json = {
             "type": os.getenv("TYPE"),
             "project_id": os.getenv("PROJECT_ID"),
@@ -370,30 +396,43 @@ def create_gen():
             "client_x509_cert_url": os.getenv("CLIENT_X509_CERT_URL"),
             "universe_domain": os.getenv("UNIVERSE_DOMAIN")
         }
+            scopes = [
+                "https://www.googleapis.com/auth/spreadsheets"
+            ]            
             creds = Credentials.from_service_account_info(credentials_json, scopes=scopes)            
+            
             client = gspread.authorize(creds)
 
             sheet_id = "15Etw5nYr_XW3nlH7HrV634PsHyEcRErSF4EuzNdLTRw"
             sheet = client.open_by_key(sheet_id)
-            all_rows = sheet.sheet1.get_all_values()            
+
+            all_rows = sheet.sheet1.get_all_values()
+
+            # for row in all_rows:
+            #     print(row)      
             chunk_size = 5  # Number of subjects per chunk
             subjects = all_rows[1:]  # Exclude the header row
+
             chunks = [subjects[i:i + chunk_size] for i in range(0, len(subjects), chunk_size)]
-            chunked_data = {}            
+
+            # Example output of one chunk
+            # Example output of one chunk
+            chunked_data = {}
+            # ===
             huggingface_ef = HuggingFaceInferenceAPIEmbeddings(
             api_key=huggingface_api_key,
             model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
             pc = Pinecone(api_key=pinecone_api_key)
             index_list = pc.list_indexes()
-            
+    
             # Extract the index names from the index_list
             index_names = [index_info["name"] for index_info in index_list.get("indexes", [])]
             print("Index names are:", index_names)
-            
+    
             # Always use "comsci" as the index name
-            index_name_to_use = "comsci"
-            
-            # Check if index exists
+            index_name_to_use = "comsci"    
+            index = pc.Index(index_name_to_use)
+
             if index_name_to_use in index_names:
                 print(f"Index '{index_name_to_use}' already exists. Skipping creation.")
             else:
@@ -403,26 +442,31 @@ def create_gen():
                     dimension=384,
                     metric="cosine",
                     spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-                )                                
-                time.sleep(10)    
+                )
+                # Wait for index to be ready (important!)
+                
+                time.sleep(10)  # Add a delay to allow the index to initialize
+    
                 # Always use the "comsci" index
                 index = pc.Index(index_name_to_use)
+    
                 # First, check for existing documents with metadata "type":"english" and delete them
                 try:
                     results = index.query(
                         vector=[0] * 384,  # dummy vector
                         filter={"type": {"$eq": "ged-ed"}},  # Use explicit $eq operator
-                        top_k=60,
+                        top_k=100,
                         include_metadata=True
-                    )                    
+                    )
+                    
                     # Extract IDs of documents with "type":"english"
                     existing_ids = [match['id'] for match in results['matches']]
                     
                     if existing_ids:
-                        print(f"Found {len(existing_ids)} existing documents with : {existing_ids}")
+                        print(f"Found {len(existing_ids)} existing documents with type=ged-ed: {existing_ids}")
                         # Delete these documents
                         index.delete(ids=existing_ids)
-                        print(f"Deleted {len(existing_ids)}")
+                        print(f"Deleted {len(existing_ids)} documents with type=ged-ed")
                 except Exception as e:
                     print(f"Error when checking/deleting existing documents: {e}")
     
@@ -457,11 +501,11 @@ def create_gen():
                 results = index.query(
                 vector=[0] * 384,  # dummy vector
                 filter={"type": {"$eq": "ged-ed"}},  # Use explicit $eq operator
-                top_k=60,
+                top_k=100,
                 include_metadata=True )
                     # Extract IDs
                 ids = [match['id'] for match in results['matches']]
-                print("Current ids:", ids)
+                print("Current ids with type=ged-ed:", ids)
             except Exception as e:
                 print(f"Error querying for documents after addition: {e}") 
             # ===            
@@ -476,9 +520,6 @@ def create_policy():
     if "email" in session:
         if request.method == "POST":                    
             
-            scopes = [
-                "https://www.googleapis.com/auth/spreadsheets"
-            ]
             credentials_json = {
             "type": os.getenv("TYPE"),
             "project_id": os.getenv("PROJECT_ID"),
@@ -492,27 +533,31 @@ def create_policy():
             "client_x509_cert_url": os.getenv("CLIENT_X509_CERT_URL"),
             "universe_domain": os.getenv("UNIVERSE_DOMAIN")
         }
-            creds = Credentials.from_service_account_info(credentials_json, scopes=scopes)
+            scopes = [
+                "https://www.googleapis.com/auth/spreadsheets"
+            ]            
+            creds = Credentials.from_service_account_info(credentials_json, scopes=scopes)            
+            
             client = gspread.authorize(creds)
 
-            # Open Google Sheet
             sheet_id = "1_LGcK9OX3ZmIAKLpyfIgwB6sAyAEyUDNYRT6qwvWV0M"
-            sheet = client.open_by_key(sheet_id)        
+            sheet = client.open_by_key(sheet_id)
+
             all_rows = sheet.sheet1.get_all_values()                   
             huggingface_ef = HuggingFaceInferenceAPIEmbeddings(
             api_key=huggingface_api_key,
             model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
             pc = Pinecone(api_key=pinecone_api_key)
             index_list = pc.list_indexes()
-            
+    
             # Extract the index names from the index_list
             index_names = [index_info["name"] for index_info in index_list.get("indexes", [])]
             print("Index names are:", index_names)
-            
+    
             # Always use "comsci" as the index name
-            index_name_to_use = "comsci"
-            
-            # Check if index exists
+            index_name_to_use = "comsci"    
+            index = pc.Index(index_name_to_use)
+
             if index_name_to_use in index_names:
                 print(f"Index '{index_name_to_use}' already exists. Skipping creation.")
             else:
@@ -522,16 +567,24 @@ def create_policy():
                     dimension=384,
                     metric="cosine",
                     spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-                )                                            
+                )
+                # Wait for index to be ready (important!)
+                
+                time.sleep(10)  # Add a delay to allow the index to initialize
+                
                 # Always use the "comsci" index
-                index = pc.Index(index_name_to_use)                    
+                index = pc.Index(index_name_to_use)
+    
+                # First, check for existing documents with metadata "type":"english" and delete them
                 try:
                     results = index.query(
                         vector=[0] * 384,  # dummy vector
                         filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
-                        top_k=50,
+                        top_k=100,
                         include_metadata=True
-                    )                                        
+                    )
+                    
+                    # Extract IDs of documents with "type":"english"
                     existing_ids = [match['id'] for match in results['matches']]
                     print("existing_ids : ",existing_ids)
                     
@@ -563,7 +616,7 @@ def create_policy():
                 results = index.query(
                 vector=[0] * 384,  # dummy vector
                 filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
-                top_k=50,
+                top_k=100,
                 include_metadata=True )            
                 ids = [match['id'] for match in results['matches']]
                 print("Current ids with type=policy:", ids)
@@ -592,7 +645,8 @@ def dashboard():
             pc = Pinecone(api_key=pinecone_api_key)
             index_list = pc.list_indexes()    
             print("Delete button have been trigger")
-            index_name = request.form.get("index_name")                        
+            index_name = request.form.get("index_name")            
+            print("the index name is ",index_name)
             pc.delete_index(index_name)
             return render_template('success.html')
         else:
