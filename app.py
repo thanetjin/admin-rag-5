@@ -126,7 +126,7 @@ def chunkByLlama(file_like, fileName):
     try:
         results = index.query(            
             filter={"type": {"$eq": "course"}},  # Use explicit $eq operator
-            top_k=60,
+            top_k=50,
             include_metadata=True
         )
         
@@ -158,7 +158,7 @@ def chunkByLlama(file_like, fileName):
     try:
         results = index.query(            
             filter={"type": {"$eq": "course"}},  # Use explicit $eq operator
-            top_k=100,
+            top_k=50,
             include_metadata=True
         )
         print("result is :",results)
@@ -251,7 +251,7 @@ def chunkByLlamaEnglish(file_like, fileName):
         results = index.query(
             vector=[0] * 384,  # dummy vector
             filter={"type": {"$eq": "english"}},  # Use explicit $eq operator
-            top_k=100,
+            top_k=1,
             include_metadata=True
         )
         
@@ -432,7 +432,7 @@ def create_gen():
     
             # Always use "comsci" as the index name
             index_name_to_use = "comsci"    
-            index = pc.Index(index_name_to_use)
+            
 
             if index_name_to_use in index_names:
                 print(f"Index '{index_name_to_use}' already exists. Skipping creation.")
@@ -449,27 +449,27 @@ def create_gen():
                 time.sleep(10)  # Add a delay to allow the index to initialize
     
                 # Always use the "comsci" index
-                index = pc.Index(index_name_to_use)
+            index = pc.Index(index_name_to_use)
     
                 # First, check for existing documents with metadata "type":"english" and delete them
-                try:
-                    results = index.query(
-                        vector=[0] * 384,  # dummy vector
-                        filter={"type": {"$eq": "ged-ed"}},  # Use explicit $eq operator
-                        top_k=100,
-                        include_metadata=True
-                    )
+            try:
+                results = index.query(
+                    vector=[0] * 384,  # dummy vector
+                    filter={"type": {"$eq": "ged-ed"}},  # Use explicit $eq operator
+                    top_k=50,
+                    include_metadata=True
+                )
                     
                     # Extract IDs of documents with "type":"english"
-                    existing_ids = [match['id'] for match in results['matches']]
+                existing_ids = [match['id'] for match in results['matches']]
                     
-                    if existing_ids:
-                        print(f"Found {len(existing_ids)} existing documents with type=ged-ed: {existing_ids}")
-                        # Delete these documents
-                        index.delete(ids=existing_ids)
-                        print(f"Deleted {len(existing_ids)} documents with type=ged-ed")
-                except Exception as e:
-                    print(f"Error when checking/deleting existing documents: {e}")
+                if existing_ids:
+                    print(f"Found {len(existing_ids)} existing documents with type=ged-ed: {existing_ids}")
+                        
+                    index.delete(ids=existing_ids)
+                    print(f"Deleted {len(existing_ids)} documents with type=ged-ed")
+            except Exception as e:
+                print(f"Error when checking/deleting existing documents: {e}")
     
                 # Now add the new document
             
@@ -502,7 +502,7 @@ def create_gen():
                 results = index.query(
                 vector=[0] * 384,  # dummy vector
                 filter={"type": {"$eq": "ged-ed"}},  # Use explicit $eq operator
-                top_k=100,
+                top_k=50,
                 include_metadata=True )
                     # Extract IDs
                 ids = [match['id'] for match in results['matches']]
@@ -557,8 +557,7 @@ def create_policy():
             print("Index names are:", index_names)
     
             # Always use "comsci" as the index name
-            index_name_to_use = "comsci"    
-            index = pc.Index(index_name_to_use)
+            index_name_to_use = "comsci"                
 
             if index_name_to_use in index_names:
                 print(f"Index '{index_name_to_use}' already exists. Skipping creation.")
@@ -575,28 +574,28 @@ def create_policy():
                 time.sleep(10)  # Add a delay to allow the index to initialize
                 
                 # Always use the "comsci" index
-                index = pc.Index(index_name_to_use)
+            index = pc.Index(index_name_to_use)
     
                 # First, check for existing documents with metadata "type":"english" and delete them
-                try:
-                    results = index.query(
-                        vector=[0] * 384,  # dummy vector
-                        filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
-                        top_k=100,
-                        include_metadata=True
+            try:
+                results = index.query(
+                    vector=[0] * 384,  # dummy vector
+                    filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
+                    top_k=50,
+                    include_metadata=True
                     )
                     
                     # Extract IDs of documents with "type":"english"
-                    existing_ids = [match['id'] for match in results['matches']]
-                    print("existing_ids : ",existing_ids)
+                existing_ids = [match['id'] for match in results['matches']]
+                print("existing_ids : ",existing_ids)
                     
-                    if existing_ids:
-                        print(f"Found {len(existing_ids)} existing documents with type=policy: {existing_ids}")
+                if existing_ids:
+                    print(f"Found {len(existing_ids)} existing documents with type=policy: {existing_ids}")
                         # Delete these documents
-                        index.delete(ids=existing_ids)
-                        print(f"Deleted {len(existing_ids)} documents with type=policy")
-                except Exception as e:
-                    print(f"Error when checking/deleting existing documents: {e}")
+                    index.delete(ids=existing_ids)
+                    print(f"Deleted {len(existing_ids)} documents with type=policy")
+            except Exception as e:
+                print(f"Error when checking/deleting existing documents: {e}")
     
                 # Now add the new document
             
@@ -618,7 +617,7 @@ def create_policy():
                 results = index.query(
                 vector=[0] * 384,  # dummy vector
                 filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
-                top_k=100,
+                top_k=50,
                 include_metadata=True )            
                 ids = [match['id'] for match in results['matches']]
                 print("Current ids with type=policy:", ids)
