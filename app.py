@@ -528,23 +528,23 @@ def create_policy():
         if request.method == "POST":                    
             import gspread
             from google.oauth2.service_account import Credentials
-            service_account_info = {
-            "type": "service_account",
-            "project_id": "final-rag",
-            "private_key_id": "593d6aaa7e5bb6cae44439c8954badd6b30bad8d",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQClXRNvgJZhpPgK\nwg8SuS/bSWijlBj+U/VDuGWIz6V+go7mPnGVRq+Md0kHFMXzM+gJ/2ySTl95wMph\nvfVbrRNNKMryBxrtBq4LfKrygx0NTGaE/C7e4hYSNSsRyDab+JsGw/CJIRgC3Nxu\nPIwP4JuPKK3A+K/OKpyItqeZKShXEDzkWyfqFfeoIdBLhTKhbGKYicKtlGGtE9Hq\nCRiH00/ou9wPJEsSqrk6k0HI7JodZd5X1GVw7DbCjp676hLnRpHPwaN80l+6BwCO\nvPJwcbUCz/ihP8sGWPsX9mZBy5zdEiNbZKSJiaK0SVm3iGWFbCb5DYzW3wZbZPTG\ny2T96Js7AgMBAAECggEAGUMq4PHoB2rIafxTiSy5XurMDZFmcBQrd/kHqervAXC4\nm/wWJhPyZacjhO1rgEgBvuVClOdcNqF5SY1XmnXKaRM+TdNADc3jcOXOx9W37nwp\nfU95aZtoe8ebmM/ZZ+KG7HWqnYhsvqM3GbAuRY6utSQlx0E2umxQFaKx3/glrYcS\nfUsqWQysRoALn6ZQkF14Mu7j4PU6cBeTEMhCUDgcUKbGYJqh3VTf6WLNbMrDbkho\n7kfgOeSC8bqHr93lhTxrIJ9d3GtnbTD4pPNpbB5RUKbj+XKRL3CbAppU+WvG9VF/\neVksWJySoOGhYi/J9ztu/QZ2upJRjsXK18h8o0ZBIQKBgQDddSphvCa4w4D9Cs5h\npN4NoQOdes4j3XNaIOAvkb0G4nx0WrJQg0E8cWkMXh9EyA9wfYU8YDjTzgbuZuwT\nyGGRj6yS9NnMgHRSATivn0GVjfDK0+gcToPXGRbDLJWVi9Astp2En9PxwmQfgHh6\nctc+xltngMJEjYWf4JrqUftcRQKBgQC/KBDFQOGBs4blDox31aN9JsylDH6Pfy95\nGzQU03SSPEX5xc55/6R4OlEAjNsIZONI9tLuhHWxI9jCK1Modn8fn3F1sFaSZDZh\nfSad2x2S9DOk2B5xMrlcXuCrrjLZKY/7EjKtURarYn7+l5T6IeMx03BJG2De0rIv\noUWJnDRRfwKBgQDIj6j/dJ/46w4xnQzF/8Mewrj8cVCpyJAEiwud6TYxOwMNeWpO\nYmC9ddR2X/OfnjPlY7g7ssUkhU1fsZSSYgKDCoR3Xwq1G4y9C+AjpW6HHFJ7zqhC\nopTiRBWKUyFxm3rAU+6aQwl2xN9abEYwVzs63fe/6CuIXEctQQPrvK2RpQKBgQCR\nyH+Jv+J7pSvicscD+UV3A+kckrvOukO9S9bbbyy+/gKr64R9nE6VdnwiPEorS63f\nDoZta03Kq7j61EnWWRC4UEQaakKL4KtsjCKwTtRuJ5lfRYdp8zJUVPNpWy/iWIU7\nCHTnoyjzyelqRrZSURfQ/xzqVFv7c5p7IrZCrYNlBwKBgQDaMryRIqGk0s1wMMbO\nSVI4zatI/31s0aPJd9bY8KF1l01xcthFXcEWNwjyA9MTZeByBEoAfMXdl3Ofpl1x\nmCZMmi+OpnZrOTCAIfeGa5gCVibgKUm7mZqLwyMHUlzjVR/TnaDrRPWXn1Iyf6fu\n5CT+I8Tn1Ch5yMBqXlsw2tY6pw==\n-----END PRIVATE KEY-----\n",
-            "client_email": "python-api@final-rag.iam.gserviceaccount.com",
-            "client_id": "118371841608472169473",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/python-api%40final-rag.iam.gserviceaccount.com",
-            "universe_domain": "googleapis.com"
-            }
+            credentials_json = {
+            "type": os.getenv("TYPE"),
+            "project_id": os.getenv("PROJECT_ID"),
+            "private_key_id": os.getenv("PRIVATE_KEY_ID"),
+            "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),
+            "client_email": os.getenv("CLIENT_EMAIL"),
+            "client_id": os.getenv("CLIENT_ID"),
+            "auth_uri": os.getenv("AUTH_URI"),
+            "token_uri": os.getenv("TOKEN_URI"),
+            "auth_provider_x509_cert_url": os.getenv("AUTH_PROVIDER_X509_CERT_URL"),
+            "client_x509_cert_url": os.getenv("CLIENT_X509_CERT_URL"),
+            "universe_domain": os.getenv("UNIVERSE_DOMAIN")
+        }
             scopes = [
                 "https://www.googleapis.com/auth/spreadsheets"
             ]
-            creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+            creds = Credentials.from_service_account_info(credentials_json, scopes=scopes)
             client = gspread.authorize(creds)
 
             sheet_id = "1_LGcK9OX3ZmIAKLpyfIgwB6sAyAEyUDNYRT6qwvWV0M"
@@ -587,7 +587,7 @@ def create_policy():
                     results = index.query(
                         vector=[0] * 384,  # dummy vector
                         filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
-                        top_k=100,
+                        top_k=50,
                         include_metadata=True
                     )
                     
@@ -623,7 +623,7 @@ def create_policy():
                 results = index.query(
                 vector=[0] * 384,  # dummy vector
                 filter={"type": {"$eq": "policy"}},  # Use explicit $eq operator
-                top_k=100,
+                top_k=50,
                 include_metadata=True )            
                 ids = [match['id'] for match in results['matches']]
                 print("Current ids with type=policy:", ids)
