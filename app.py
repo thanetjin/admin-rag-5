@@ -162,6 +162,7 @@ def chunkByLlamaEnglish(file_like):
         result_type="markdown",
         user_prompt="Keep Thai languages",
         system_prompt="Extract the logical flow from this flowchart image and present it in a clear, structured step-by-step format. Ensure that each decision point is distinctly separated and that conditions are clearly linked to their outcomes.",        
+        premium_mode=True
     ).load_data(file_like, extra_info={"file_name": "file_name"})
     
     text_only = document[0].text_resource.text    
